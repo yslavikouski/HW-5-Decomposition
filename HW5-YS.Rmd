@@ -1,0 +1,76 @@
+---
+title: "HW5-YS"
+output: html_document
+date: "2023-10-29"
+---
+
+```{r}
+library(fpp)
+library(fpp2)
+library(TTR)
+
+library(readxl)
+HW_3_Time_Series_Data_CPI_BLR_YS <- read_excel("C:/Users/pro10/Downloads/HW-3-Time Series Data-CPI(BLR)-YS.xlsx")
+
+#Assign data
+CPI <- HW_3_Time_Series_Data_CPI_BLR_YS
+
+# clean data of NAs (looked up functions)
+?na.omit
+
+CPI <- na.omit(CPI)
+
+#change columns and rows
+CPI2 <- as.data.frame(t(CPI))
+
+#make dataset look a bit nicer
+CPI2 <- CPI2[-1,]
+rownames(CPI2) <- NULL
+colnames(CPI2) <- c('Date','DRef','Index')
+
+### also now looking at the table I think I don't really need Index Reference date column because the reference is always the same - 2022M12 so I will delete this column
+CPI2 <- CPI2[,-2]
+
+
+#Now change chr to factor and num for index
+str(CPI2)
+CPI2$Date <- as.factor(CPI2$Date)
+CPI2$Index <- as.numeric(CPI2$Index)
+str(CPI2)
+
+
+#convert to ts for decomposition
+CPI3 <- ts(CPI2, start=2018, end=2023, frequency = 12)
+View(CPI3)
+plot(CPI3)
+
+#start decomposition
+stl_decomp <- stl(CPI3[,2], s.window = "periodic")
+
+attributes(stl_decomp)
+plot(stl_decomp)
+
+#seasonal
+seasadj(stl_decomp)
+
+# Plot a line on the graph
+plot(CPI3)
+lines(seasadj(stl_decomp), col="Red")
+
+#default forecast for 3 years
+f_stl <- forecast(stl_decomp,h=36)
+f_stl
+plot(f_stl)
+
+
+#try different decomposition
+decomp_elec <- decompose(CPI3)
+
+attributes(decomp_elec)
+seasadj(decomp_elec)
+
+#check out different plots
+plot(decomp_elec)
+
+plot(seasadj(decomp_elec))
+```
